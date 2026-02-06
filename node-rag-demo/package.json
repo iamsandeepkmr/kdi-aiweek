@@ -1,0 +1,24 @@
+{
+  "name": "rag-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "build:index": "node build-index.mjs",
+    "query:rag": "node query-rag.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@chroma-core/default-embed": "^0.1.9",
+    "@langchain/core": "^1.1.19",
+    "@langchain/openai": "^1.2.4",
+    "@langchain/textsplitters": "^1.0.1",
+    "chromadb": "^3.2.2",
+    "chromadb-default-embed": "^2.14.0",
+    "dotenv": "^17.2.3",
+    "langchain": "^1.2.17"
+  }
+}
