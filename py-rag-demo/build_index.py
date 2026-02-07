@@ -4,10 +4,8 @@ from dotenv import load_dotenv
 
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-#from langchain.text_splitter import RecursiveCharacterTextSplitter
-#from langchain.textsplitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 
 load_dotenv()
 
@@ -44,5 +42,4 @@ vectorstore = Chroma.from_documents(
     persist_directory=PERSIST_DIR,
 )
 
-vectorstore.persist()
 print("Chroma index built at", PERSIST_DIR)

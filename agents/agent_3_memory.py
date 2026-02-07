@@ -4,9 +4,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.tools import tool
-from langgraph.prebuilt import create_react_agent
 from langchain.agents import create_agent
-from langchain_classic import hub
 from langgraph.checkpoint.memory import MemorySaver
 
 load_dotenv()
@@ -20,7 +18,6 @@ def summarize_notes(topic: str) -> str:
     return f"Notes on {topic}: Use tools, reason step-by-step, verify facts."
 
 tools = [search, summarize_notes]
-prompt = hub.pull("hwchase17/react")
 
 #agent = create_react_agent(model, tools, prompt)
 agent = create_agent(model=model, tools=tools,

@@ -7,11 +7,10 @@ from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage
 from langgraph.graph import END, StateGraph, MessagesState
-from langgraph.prebuilt import ToolNode, create_react_agent
+from langgraph.prebuilt import ToolNode
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_classic import hub
-from typing import Dict, TypedDict
+from typing import Dict, TypedDict, Literal
 
 load_dotenv()
 model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
@@ -31,17 +30,14 @@ def summarize(topic: str) -> str:
 tools = [search, profit_calc, summarize]
 
 # Specialist agents (sub-graphs)
-#research_agent = create_react_agent(model, [search], hub.pull("hwchase17/react"))
 research_agent = create_agent(model=model, tools=[search],
                      system_prompt="You are a helpful agent that uses tools to answer questions accurately.")
 research_node = ToolNode(tools=[search])
 
-#calc_agent = create_react_agent(model, [profit_calc], hub.pull("hwchase17/react"))
 calc_agent = create_agent(model=model, tools=[profit_calc],
                      system_prompt="You are a helpful agent that uses tools to answer questions accurately.")
 calc_node = ToolNode(tools=[profit_calc])
 
-# = create_react_agent(model, [summarize], hub.pull("hwchase17/react"))
 summary_agent = create_agent(model=model, tools=[summarize],
                      system_prompt="You are a helpful agent that uses tools to answer questions accurately.")
 summary_node = ToolNode(tools=[summarize])
@@ -57,17 +53,14 @@ class AgentState(TypedDict):
 def supervisor(state: MessagesState):
     messages = state["messages"]
     last_msg = messages[-1].content.lower()
+# Extended State with iteration counter
+class AgentState(TypedDict):
+    messages: list
+    next: str
+    iterations: int
 
-    if any(word in last_msg for word in ["search", "latest", "current"]):
-        return "researcher"
-    elif any(word in last_msg for word in ["calculate", "profit", "cost"]):
-        return "calculator"
-    elif "summarize" in last_msg:
-        return "summarizer"
-    else:
-        return END
-
-def supervisor(state: MessagesState) -> Dict[str, Literal["researcher", "calculator", "summarizer", "__end__"]]:
+# Supervisor decides routing
+def supervisor(state: AgentState) -> Dict[str, Literal["researcher", "calculator", "summarizer", str]]:
     messages = state["messages"]
     iters = state.get("iterations", 0)
 

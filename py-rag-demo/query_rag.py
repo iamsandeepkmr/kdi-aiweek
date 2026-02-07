@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_chroma import Chroma
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
 
@@ -31,20 +33,38 @@ llm = ChatOpenAI(
     api_key=OPENAI_API_KEY,
 )
 
-# 3. Build RetrievalQA chain
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    retriever=retriever,
-    return_source_documents=True,
-    chain_type="stuff",
+# 3. Build retrieval chain
+system_prompt = (
+    "You are an assistant for question-answering tasks. "
+    "Use the following pieces of retrieved context to answer the question. "
+    "If you don't know the answer, just say that you don't know.\n\n"
+    "{context}"
+)
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ]
+)
+
+def format_documents(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+qa_chain = (
+    {"context": retriever | format_documents, "input": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
 )
 
 def ask(query: str):
-    result = qa_chain.invoke({"query": query})
+    answer = qa_chain.invoke(query)
     print("\nQ:", query)
-    print("\nA:", result["result"])
+    print("\nA:", answer)
+    # Get sources separately for display
+    docs = retriever.invoke(query)
     print("\nSources:")
-    for i, d in enumerate(result["source_documents"], start=1):
+    for i, d in enumerate(docs, start=1):
         print(f"- [{i}] {d.page_content[:120]}...")
 
 if __name__ == "__main__":

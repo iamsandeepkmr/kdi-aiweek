@@ -9,4 +9,9 @@ pip install \
   langchain-chroma \
   chromadb \
   tiktoken \
-  python-dotenv
+  python-dotenv \
+  langchain-text-splitters \
+  langchain-core \
+  langchain_community \
+  ddgs \
+  langgraph
